@@ -15,9 +15,9 @@ namespace SafaricomAirtime
 
                 string accessToken = await AccessToken.GetNewAccessToken();
 
-                RechargeAirtime rechargeClient = new RechargeAirtime();
+                RechargeAirtime rechargeAirtime = new RechargeAirtime();
 
-                await rechargeClient.MakeRechargeRequest(accessToken, amount, receiverMsisdn);
+                await rechargeAirtime.MakeRechargeRequest(accessToken, amount, receiverMsisdn);
             }
             catch (Exception ex)
             {
