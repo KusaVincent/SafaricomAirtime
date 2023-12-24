@@ -10,7 +10,6 @@ namespace SafaricomAirtime
         {
             try
             {
-
                 int amount = 1000; //amount in cents.
                 string receiverMsisdn = "798888323";
 
