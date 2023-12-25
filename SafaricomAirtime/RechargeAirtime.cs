@@ -7,6 +7,8 @@ namespace SafaricomAirtime
 {
     internal class RechargeAirtime
     {
+        private static readonly HttpClient HttpClient = new HttpClient();
+
         public async Task MakeRechargeRequest(string accessToken, int amount, string receiverMsisdn)
         {
             try
@@ -15,30 +17,29 @@ namespace SafaricomAirtime
                 string senderMsisdn = ConfigurationManager.GetKey("SenderMsisdn");
                 string apiUrl = ConfigurationManager.GetKey("SafaricomRechargeUrl");
 
-                using (HttpClient httpClient = new HttpClient())
+                var requestData = new
                 {
-                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
-                    //httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                    senderMsisdn,
+                    amount,
+                    servicePin,
+                    receiverMsisdn
+                };
 
-                    var requestData = new
-                    {
-                        senderMsisdn,
-                        amount,
-                        servicePin,
-                        receiverMsisdn
-                    };
+                var jsonRequest = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-                    var jsonRequest = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                HttpClient.DefaultRequestHeaders.Clear();
+                HttpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
-                    var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await HttpClient.PostAsync(apiUrl, content);
+                response.EnsureSuccessStatusCode();
 
-                    HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
-
-                    response.EnsureSuccessStatusCode();
-
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Response: {responseBody}");
-                }
+                string responseBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Response: {responseBody}");
+            }
+            catch (HttpRequestException ex) when (ex.Message.Contains("401"))
+            {
+                Console.WriteLine("Unauthorized access. Please check your access token.");
             }
             catch (Exception ex)
             {
